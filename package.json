@@ -1,7 +1,7 @@
 {
   "name": "@whi/serious-error-types",
   "version": "0.1.0",
-  "description": "",
+  "description": "Well defined error types designed for creating robust and deterministic code.",
   "main": "src/index.js",
   "dependencies": {
     "@whi/stdlog": "^0.3.0"
@@ -14,6 +14,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC"
+  "author": "Matthew Brisebois",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mjbrisebois/serious-error-types"
+  }
 }
