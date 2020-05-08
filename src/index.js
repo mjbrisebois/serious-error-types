@@ -43,12 +43,50 @@ const http				= require('http');
 //     passed invalid parameters.
 //
 
+const $type			= Symbol.for("type");
+const $serious			= Symbol.for("@whi/serious-error-types");
+
 
 //
 // Custom error's group
 //
 class SeriousError extends Error {
-    [Symbol.toStringTag]	= "SeriousError";
+    [$type]			= $serious;
+    [Symbol.toStringTag]	= SeriousError.name;
+
+    static [Symbol.hasInstance] ( instance ) {
+	// The type property must match our unique symbol otherwise we would match error classes
+	// that coincidentally have the same name.
+	if ( instance[$type] !== $serious )
+	    return false;
+
+	// Automatically passes if we are checking against our root class
+	if ( this.name === SeriousError.name )
+	    return true;
+
+	if ( instance.constructor.name === this.name )
+	    return true;
+	if ( instance[Symbol.toStringTag] === this.name )
+	    return true;
+
+	// Check all parent classes of instance for matching class name.
+	let parent		= instance;
+	let count		= 0;
+	while ( parent = Object.getPrototypeOf(parent.constructor) ) {
+	    if ( ! parent.name )
+		break;
+	    if ( parent.name === this.name )
+		return true;
+	    if ( count > 100 )
+		throw new Error("Oops...it appears that SeriousError.hasInstance() found an infinite loop");
+	    count++;
+	}
+	return false;
+    };
+
+    static [Symbol.toPrimitive] ( hint ) {
+	return hint === "number" ? null : `[${this.name} {}]`;
+    }
 
     constructor( ...params ) {
 	super( ...params );
@@ -60,10 +98,21 @@ class SeriousError extends Error {
 	this.name		= this.constructor.name;
     }
 
+    [Symbol.toPrimitive] ( hint ) {
+	return hint === "number" ? null : this.toString();
+    }
+
+    toString () {
+	return `[${this.constructor.name}( ${this.message} )`;
+    }
+
     toJSON () {
 	return {
 	    "error":	this.name,
 	    "message":	this.message,
+	    "stack":	process.env.LOG_LEVEL
+		? typeof this.stack === "string" ? this.stack.split("\n") : this.stack
+		: undefined,
 	};
     }
 }
@@ -73,9 +122,12 @@ class SeriousError extends Error {
 // Input Errors
 //
 class InputError extends SeriousError {
+    [Symbol.toStringTag]	= InputError.name;
 }
 
 class MissingArgumentError extends InputError {
+    [Symbol.toStringTag]	= MissingArgumentError.name;
+
     constructor( position, name ) {
 	super(`Missing required argument ${position} (${name})`);
 
@@ -85,6 +137,8 @@ class MissingArgumentError extends InputError {
 }
 
 class InvalidArgumentError extends InputError {
+    [Symbol.toStringTag]	= InvalidArgumentError.name;
+
     constructor( position, name, given, expected ) {
 	super(`Invalid argument ${position} (${name}) type '${given}', expected type ${expected}`);
 
@@ -100,22 +154,31 @@ class InvalidArgumentError extends InputError {
 // Database Errors
 //
 class DatabaseError extends SeriousError {
+    [Symbol.toStringTag]	= DatabaseError.name;
+
+    constructor( message, query ) {
+	const sql		= query === undefined ? null : query.toString();
+	const table		= query === undefined ? null : query._single.table;
+	super(`${message} for ${table} using query:\n\n    ${sql}\n`);
+
+	this.table		= table;
+	this.query		= sql;
+    }
 }
 
 class DatabaseQueryError extends DatabaseError {
-    constructor( message, query ) {
-	super( message );
+    [Symbol.toStringTag]	= DatabaseQueryError.name;
 
-	this.query		= query.toString();
+    constructor( message, query ) {
+	super( message, query );
     }
 }
 
 class ItemNotFoundError extends DatabaseError {
-    constructor( query ) {
-	const sql		= query.toString();
-	super(`Found 0 results for ${query._single.table} using query:\n\n    ${sql}\n`);
+    [Symbol.toStringTag]	= ItemNotFoundError.name;
 
-	this.query		= sql;
+    constructor( query ) {
+	super(`Found 0 results`, query);
     }
 }
 
@@ -124,9 +187,12 @@ class ItemNotFoundError extends DatabaseError {
 // Auth Errors
 //
 class AuthError extends SeriousError {
+    [Symbol.toStringTag]	= AuthError.name;
 }
 
 class AuthenticationError extends AuthError {
+    [Symbol.toStringTag]	= AuthenticationError.name;
+
     constructor() {
 	super(`Password verification failed.`);
     }
@@ -137,9 +203,16 @@ class AuthenticationError extends AuthError {
 // HTTP Response Errors
 //
 class HTTPError extends SeriousError {
+    [Symbol.toStringTag]	= HTTPError.name;
+
+    constructor( ...params ) {
+	super( ...params );
+    }
 }
 
 class HTTPResponseError extends HTTPError {
+    [Symbol.toStringTag]	= HTTPResponseError.name;
+
     constructor( status_code = 500, name, message, stack ) {
 	super();
 
@@ -153,9 +226,9 @@ class HTTPResponseError extends HTTPError {
 
 	this.status			= status_code;
 	this.status_name		= http.STATUS_CODES[ status_code ] || "Custom Status Code";
-	this.stack			= typeof stack === "string"
-	    ? stack.split("\n")
-	    : stack;
+
+	if ( stack !== undefined )
+	    this.stack			= stack;
 
 	// By this point, name, message and stack could still be undefined
 	if ( name === undefined || message === undefined ) {
@@ -169,16 +242,15 @@ class HTTPResponseError extends HTTPError {
     }
 
     toJSON () {
-	return {
+	return Object.assign({
 	    "status":	this.status,
-	    "error":	this.name,
-	    "message":	this.message,
-	    "stack":	process.env.LOG_LEVEL ? this.stack : undefined,
-	};
+	}, super.toJSON() );
     }
 }
 
 class MethodNotAllowedError extends HTTPResponseError {
+    [Symbol.toStringTag]	= MethodNotAllowedError.name;
+
     constructor( path, method, allowed = [] ) {
 	super( 405, `${path} does not support HTTP request method ${method}` );
 
