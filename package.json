@@ -3,6 +3,9 @@
   "version": "0.1.1",
   "description": "Well defined error types designed for creating robust and deterministic code.",
   "main": "src/index.js",
+  "files": [
+    "README.md"
+  ],
   "dependencies": {
     "@whi/stdlog": "^0.3.0"
   },
