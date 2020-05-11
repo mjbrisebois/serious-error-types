@@ -1,4 +1,4 @@
-![](https://img.shields.io/npm/v/@whi/serious-error-types/latest?style=flat-square)
+[![](https://img.shields.io/npm/v/@whi/serious-error-types/latest?style=flat-square)](http://npmjs.com/package/@whi/serious-error-types)
 
 # Serious Error Types
 This module brings a hierarchy of well defined error types to help make error handling a proactive
@@ -38,9 +38,12 @@ Error
      |   '- ItemNotFoundError
      |
      |- AuthError
-     |   '- AuthenticationError
+     |   |- AuthenticationError
+     |   '- AuthorizationError
      |
      '- HTTPError
+         |- HTTPRequestError
+         |   '- NotFoundError
+         |   '- MethodNotAllowedError
          '- HTTPResponseError
-             '- MethodNotAllowedError
 ```

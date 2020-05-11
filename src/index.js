@@ -1,6 +1,6 @@
 const path				= require('path');
 const log				= require('@whi/stdlog')(path.basename( __filename ), {
-    level: process.env.LOG_LEVEL || 'fatal',
+    level: (process.env.LOG_LEVEL && !__dirname.includes("/node_modules/") ) || 'fatal',
 });
 
 const http				= require('http');
@@ -70,9 +70,9 @@ class SeriousError extends Error {
 	    return true;
 
 	// Check all parent classes of instance for matching class name.
-	let parent		= instance;
+	let parent		= instance.constructor;
 	let count		= 0;
-	while ( parent = Object.getPrototypeOf(parent.constructor) ) {
+	while ( parent = Object.getPrototypeOf(parent) ) {
 	    if ( ! parent.name )
 		break;
 	    if ( parent.name === this.name )
@@ -103,7 +103,7 @@ class SeriousError extends Error {
     }
 
     toString () {
-	return `[${this.constructor.name}( ${this.message} )`;
+	return `[${this.constructor.name}( ${this.message} )]`;
     }
 
     toJSON () {
@@ -194,7 +194,15 @@ class AuthenticationError extends AuthError {
     [Symbol.toStringTag]	= AuthenticationError.name;
 
     constructor() {
-	super(`Password verification failed.`);
+	super(`Password verification failed`);
+    }
+}
+
+class AuthorizationError extends AuthError {
+    [Symbol.toStringTag]	= AuthorizationError.name;
+
+    constructor() {
+	super(`Insufficient permissions`);
     }
 }
 
@@ -205,20 +213,18 @@ class AuthenticationError extends AuthError {
 class HTTPError extends SeriousError {
     [Symbol.toStringTag]	= HTTPError.name;
 
-    constructor( ...params ) {
-	super( ...params );
-    }
-}
-
-class HTTPResponseError extends HTTPError {
-    [Symbol.toStringTag]	= HTTPResponseError.name;
-
     constructor( status_code = 500, name, message, stack ) {
 	super();
 
 	if ( status_code instanceof Error ) {
 	    let err			= status_code;
-	    status_code			= err instanceof this.constructor ? err.status : 500;
+
+	    if ( err instanceof HTTPError )
+		status_code		= err.status;
+	    else if ( err instanceof AuthError )
+		status_code		= 401;
+	    else
+		status_code		= 500;
 	    name			= err.name || err.constructor.name;
 	    message			= err.message || String(err);
 	    stack			= err.stack;
@@ -248,7 +254,19 @@ class HTTPResponseError extends HTTPError {
     }
 }
 
-class MethodNotAllowedError extends HTTPResponseError {
+class HTTPRequestError extends HTTPError {
+    [Symbol.toStringTag]	= HTTPRequestError.name;
+}
+
+class NotFoundError extends HTTPRequestError {
+    [Symbol.toStringTag]	= NotFoundError.name;
+
+    constructor( path, method, allowed = [] ) {
+	super( 404, `Could not find any resource for ${method} ${path}` );
+    }
+}
+
+class MethodNotAllowedError extends HTTPRequestError {
     [Symbol.toStringTag]	= MethodNotAllowedError.name;
 
     constructor( path, method, allowed = [] ) {
@@ -259,6 +277,10 @@ class MethodNotAllowedError extends HTTPResponseError {
 
 	this.allowed			= Array.from( allowed.values() );
     }
+}
+
+class HTTPResponseError extends HTTPError {
+    [Symbol.toStringTag]	= HTTPResponseError.name;
 }
 
 
@@ -279,9 +301,14 @@ module.exports			= {
     // Auth types
     AuthError,
     AuthenticationError,
+    AuthorizationError,
 
     // HTTP types
     HTTPError,
-    HTTPResponseError,
+
+    HTTPRequestError,
+    NotFoundError,
     MethodNotAllowedError,
+
+    HTTPResponseError,
 };
