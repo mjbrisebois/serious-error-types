@@ -106,11 +106,11 @@ class SeriousError extends Error {
 	return `[${this.constructor.name}( ${this.message} )]`;
     }
 
-    toJSON () {
+    toJSON ( debug = false ) {
 	return {
 	    "error":	this.name,
 	    "message":	this.message,
-	    "stack":	process.env.LOG_LEVEL
+	    "stack":	debug === true
 		? typeof this.stack === "string" ? this.stack.split("\n") : this.stack
 		: undefined,
 	};
