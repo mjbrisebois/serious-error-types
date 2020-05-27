@@ -1,6 +1,6 @@
 const path				= require('path');
 const log				= require('@whi/stdlog')(path.basename( __filename ), {
-    level: (process.env.LOG_LEVEL && !__dirname.includes("/node_modules/") ) || 'fatal',
+    level: (!__dirname.includes("/node_modules/") && process.env.LOG_LEVEL ) || 'fatal',
 });
 
 const http				= require('http');
@@ -125,6 +125,30 @@ class InputError extends SeriousError {
     [Symbol.toStringTag]	= InputError.name;
 }
 
+class MissingInputError extends InputError {
+    [Symbol.toStringTag]	= MissingInputError.name;
+
+    constructor( context, name ) {
+	super(`Missing required input ${context} (${name})`);
+
+	this.context		= context;
+	this.input_name		= name;
+    }
+}
+
+class InvalidInputError extends InputError {
+    [Symbol.toStringTag]	= InvalidInputError.name;
+
+    constructor( context, name, given, expected ) {
+	super(`Invalid ${context} (${name}) type '${given}', expected type ${expected}`);
+
+	this.context		= context;
+	this.input_name		= name;
+	this.given		= given;
+	this.expected		= expected;
+    }
+}
+
 class MissingArgumentError extends InputError {
     [Symbol.toStringTag]	= MissingArgumentError.name;
 
@@ -223,6 +247,8 @@ class HTTPError extends SeriousError {
 		status_code		= err.status;
 	    else if ( err instanceof AuthError )
 		status_code		= 401;
+	    else if ( err instanceof InputError )
+		status_code		= 400;
 	    else
 		status_code		= 500;
 	    name			= err.name || err.constructor.name;
@@ -290,6 +316,8 @@ module.exports			= {
 
     // Input types
     InputError,
+    MissingInputError,
+    InvalidInputError,
     MissingArgumentError,
     InvalidArgumentError,
 
