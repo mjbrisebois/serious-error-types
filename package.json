@@ -1,6 +1,6 @@
 {
   "name": "@whi/serious-error-types",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Well defined error types designed for creating robust and deterministic code.",
   "main": "src/index.js",
   "files": [
