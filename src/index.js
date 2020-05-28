@@ -273,10 +273,11 @@ class HTTPError extends SeriousError {
 	}
     }
 
-    toJSON () {
+    toJSON ( ...args ) {
 	return Object.assign({
-	    "status":	this.status,
-	}, super.toJSON() );
+	    "status":		this.status,
+	    "status_name":	this.status_name,
+	}, super.toJSON( ...args ) );
     }
 }
 
