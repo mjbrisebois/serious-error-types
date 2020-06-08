@@ -13,7 +13,7 @@ const { SeriousError,
 const tag				= Symbol.toStringTag;
 
 
-function basic_tests () {
+function error_tests () {
     it("should check that all types implement hasInstance properly", async () => {
 	log.silly("Result: %s", JSON.stringify(error_types,null,4) );
 
@@ -69,8 +69,8 @@ function basic_tests () {
     });
 }
 
-describe("RestfulAPI", () => {
+escribe("Unit Tests", () => {
 
-    describe("Basic", basic_tests );
+    describe("Errors", error_tests );
 
 });

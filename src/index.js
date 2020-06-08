@@ -182,8 +182,11 @@ class DatabaseError extends SeriousError {
 
     constructor( message, query ) {
 	const sql		= query === undefined ? null : query.toString();
-	const table		= query === undefined ? null : query._single.table;
-	super(`${message} for ${table} using query:\n\n    ${sql}\n`);
+	let table		= "unknown";
+	if ( query && query._single )
+	    table		= query === undefined ? null : query._single.table;
+
+	super(`${message} for '${table}' using query:\n\n    ${sql}\n`);
 
 	this.table		= table;
 	this.query		= sql;
@@ -217,8 +220,8 @@ class AuthError extends SeriousError {
 class AuthenticationError extends AuthError {
     [Symbol.toStringTag]	= AuthenticationError.name;
 
-    constructor() {
-	super(`Password verification failed`);
+    constructor( msg = "Credential verification failed" ) {
+	super( msg );
     }
 }
 
