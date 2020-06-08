@@ -69,7 +69,7 @@ function error_tests () {
     });
 }
 
-escribe("Unit Tests", () => {
+describe("Unit Tests", () => {
 
     describe("Errors", error_tests );
 
