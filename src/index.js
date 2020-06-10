@@ -246,17 +246,22 @@ class HTTPError extends SeriousError {
 	if ( status_code instanceof Error ) {
 	    let err			= status_code;
 
+	    name			= err.name || err.constructor.name;
+	    message			= err.message || String(err);
+	    stack			= err.stack;
+
 	    if ( err instanceof HTTPError )
 		status_code		= err.status;
 	    else if ( err instanceof AuthError )
 		status_code		= 401;
 	    else if ( err instanceof InputError )
 		status_code		= 400;
+	    else if ( err instanceof ItemNotFoundError ) {
+		status_code		= 404;
+		message			= `Found 0 results for item lookup.`;
+	    }
 	    else
 		status_code		= 500;
-	    name			= err.name || err.constructor.name;
-	    message			= err.message || String(err);
-	    stack			= err.stack;
 	}
 
 	this.status			= status_code;
