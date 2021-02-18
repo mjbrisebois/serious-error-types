@@ -308,7 +308,9 @@ class MethodNotAllowedError extends HTTPRequestError {
 	super( 405, `${path} does not support HTTP request method ${method}` );
 
 	allowed				= (new Set(["GET", "HEAD"]))
-	    .add( ...allowed.map(m => m.toUpperCase()) );
+
+	if ( allowed.length )
+	    allowed.add( ...allowed.map(m => m.toUpperCase()) );
 
 	this.allowed			= Array.from( allowed.values() );
     }
