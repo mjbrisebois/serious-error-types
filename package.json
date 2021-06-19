@@ -3,18 +3,22 @@
   "version": "0.1.8",
   "description": "Well defined error types designed for creating robust and deterministic code.",
   "main": "src/index.js",
+  "browser": "dist/serious-error-types.bundled.js",
   "files": [
-    "README.md"
+    "README.md",
+    "src/index.js",
+    "dist/serious-error-types.bundled.js"
   ],
-  "dependencies": {
-    "@whi/stdlog": "^0.3.0"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "@whi/stdlog": "^0.3.0",
     "chai": "^4.2.0",
     "mocha": "^7.1.2",
-    "superstruct": "^0.8.3"
+    "webpack": "^5.39.1",
+    "webpack-cli": "^4.7.2"
   },
   "scripts": {
+    "build": "webpack",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Matthew Brisebois",
