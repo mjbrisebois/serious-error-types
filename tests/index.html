@@ -3,5 +3,17 @@
     </head>
     <body>
 	<script type="text/javascript" src="../dist/serious-error-types.bundled.js"></script>
+
+	<script type="text/javascript">
+	  const { SeriousError,
+		  InputError,
+		  HTTPError,
+		  HTTPResponseError } = SeriousErrors;
+
+	  const message			= `You are lost`;
+	  const err			= new HTTPResponseError( 404, message );
+
+	  console.log("Result: %s", JSON.stringify(err,null,4) );
+	</script>
     </body>
 </html>

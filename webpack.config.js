@@ -8,8 +8,10 @@ module.exports = {
     entry: [ './src/index.js' ],
     output: {
 	filename: 'serious-error-types.bundled.js',
+	globalObject: 'this',
 	library: {
-	    "type": "window",
+	    "name": "SeriousErrors",
+	    "type": "umd",
 	},
     },
     stats: {

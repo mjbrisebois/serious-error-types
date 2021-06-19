@@ -6,6 +6,8 @@ const log				= require('@whi/stdlog')(path.basename( __filename ), {
 const expect				= require('chai').expect;
 
 const error_types			= require('../../src/index.js');
+// const error_types			= require('../../dist/serious-error-types.bundled.js');
+
 const { SeriousError,
 	InputError,
 	HTTPError,
